@@ -9,7 +9,7 @@ from app.schema import JobRead, JobCreate
 
 from app.scrapers.fake_jobs import scrape_fake_jobs
 
-from app.LLM.tailor import tailor_resume
+from app.LLM.tail import tailor_resume
 
 from app.models.resume import Resume
 app = FastAPI() #Instantiates the application object. app is used by Uvicorn.
@@ -119,3 +119,15 @@ def tailor_job_resume(job_id : UUID,db: Session = Depends(get_db)):
         "resume_id" : str(resume_row.id),
         "tailored_resume" : resume_row.tailored_resume
     }
+
+@app.get("/resumes")
+def list_resumes(db: Session = Depends(get_db)):
+    resumes = db.query(Resume).all()
+    return [
+        {
+            "id" : str(r.id),
+            "job_id" : str(r.job_id),
+            "has_tailored" : r.tailored_resume is not None
+        }
+        for r in resumes
+    ]
